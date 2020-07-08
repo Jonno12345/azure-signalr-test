@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>All information is in console and network tabs.</p>
+</div>
+@section Scripts
+{
+    <script src="~/lib/microsoft-signalr/signalr.js" asp-append-version="true"></script>
+    <script type="text/javascript">
+        var connection = new signalR.HubConnectionBuilder()
+        .withUrl("https://localhost:44379/testhub",
+                {
+                    transport: signalR.HttpTransportType.ServerSentEvents
+                })
+            .withAutomaticReconnect() //can comment this out too
+            .build();
+
+        connection.onclose(function() {
+            console.log("if you see this, you commented out setInterval and withAutomaticReconnect");
+        });
+
+        connection.onreconnected(function () {
+            console.log("if you see this, you commented out setInterval");
+        });
+        
+        connection.start().then(function () {
+            //comment out the following setinterval and the connection will be maintained (using client keepalive).
+
+            setInterval(function () {
+                connection.invoke("InvokeMeOften").then(function (d) {
+                    if (d) {
+                        console.log("executed");
+                    } else {
+                        console.log("wrong return");
+                    }
+                }).catch(function () {
+                    console.log("failed");
+                });
+            }, 5000);
+        });
+    </script>
+}
